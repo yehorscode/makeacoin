@@ -1,20 +1,23 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-import Home from './pages/Home/Home'
-import { BrowserRouter, Route, Routes} from "react-router-dom"
-function App() {
+import "./App.css";
+import Home from "./pages/Home/Home";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import Layout from "./pages/Layout/Layout";
+import { ThemeProvider } from "@/components/theme-provider";
 
-  return (
-    <>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </BrowserRouter>
-    </>
-  )
+function App() {
+    return (
+        <>
+            <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/" element={<Layout />}>
+                            <Route index element={<Home />} />
+                        </Route>
+                    </Routes>
+                </BrowserRouter>
+            </ThemeProvider>
+        </>
+    );
 }
 
-export default App
+export default App;
