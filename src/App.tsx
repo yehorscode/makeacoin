@@ -1,8 +1,10 @@
 import "./App.css";
-import Home from "./pages/Home/Home";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import Layout from "./pages/Layout/Layout";
 import { ThemeProvider } from "@/components/theme-provider";
+import Home from "@/pages/Home/Home";
+import Layout from "@/pages/Layout/Layout";
+import LoginPage from "@/pages/Login/LoginPage";
+
 
 function App() {
     return (
@@ -12,6 +14,7 @@ function App() {
                     <Routes>
                         <Route path="/" element={<Layout />}>
                             <Route index element={<Home />} />
+                            <Route path="/login" element={<LoginPage />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>
