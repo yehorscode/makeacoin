@@ -6,21 +6,17 @@ import { useTheme } from "@/components/theme-provider";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 export default function LoginPage() {
     const { theme } = useTheme();
-    useEffect(() => {
-        document.title = "makeacoin ";
-    }, []);
-
-    function loginWGithub() {
-        account.createOAuth2Session({
-            provider: OAuthProvider.Github,
-            success: window.location.origin,
-            failure: window.location.origin,
-            scopes: ["user", "user:email"]
-        });
-    }
-
+    // async function loginWGithub() {
+    //     await account.createOAuth2Session({
+    //         provider: OAuthProvider.Github,
+    //         success: "http://localhost:5173/",
+    //         failure: "http://localhost:5173/login",
+    //     });
+    // }
+    
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
@@ -28,8 +24,9 @@ export default function LoginPage() {
         await account.create({
             email: email,
             password: password,
-            userId: "unique()"
+            userId: "unique()",
         });
+        toast.success("Registered successfully! You can log in now.")
     }
 
     async function loginWEmail() {
@@ -37,12 +34,13 @@ export default function LoginPage() {
             email: email,
             password: password,
         });
+        toast.success("Logged in successfully!")
     }
 
     async function logout() {
         await account.deleteSession({
-            sessionId: "current"
-        })
+            sessionId: "current",
+        });
     }
 
     useEffect(() => {
@@ -59,7 +57,7 @@ export default function LoginPage() {
 
     return (
         <div className="">
-            <div className="bg-accent rounded-xl border py-10 flex flex-col justify-center items-center">
+            {/* <div className="bg-accent rounded-xl border py-10 flex flex-col justify-center items-center">
                 <h1 className="font-mono text-2xl">Let's Login (alright?)</h1>
                 <span className="text-sm opacity-70">
                     You don't have a choice except for github heheheh
@@ -83,22 +81,31 @@ export default function LoginPage() {
                     </button>
                 ) : null}
                 <Button onClick={logout}>Logout</Button>
-            </div>
+            </div> */}
             <div className="bg-accent mt-5 rounded-xl border py-10 flex flex-col justify-center items-center">
                 <h1 className="font-mono text-2xl">
-                    Or a more <i>classic</i> approach?
+                    Login Using this old-ahh form
                 </h1>
                 <div className="w-100 text-left mt-5 gap-3 flex flex-col">
                     <div className="flex  flex-col text-left">
                         <span>Email</span>
-                        <Input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        <Input
+                            placeholder="Email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
                     </div>
                     <div className="flex flex-col text-left">
                         <span>Password</span>
-                        <Input placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
+                        <Input
+                            placeholder="Password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
                     </div>
-                    <Button onClick={registerWEmail}>Register</Button>
                     <Button onClick={loginWEmail}>Login</Button>
+                    <Button onClick={registerWEmail} variant={"outline"}>Register</Button>
+                    <span>Note: To register: 1. Fill out form with email and password 2. Click register. Done. Then you can log in immediattely</span>
                 </div>
             </div>
         </div>

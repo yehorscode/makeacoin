@@ -1,7 +1,7 @@
 import { BadgePlus, Sun, Moon, User, Compass } from "lucide-react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
-
+import { Toaster } from "@/components/ui/sonner"
 export default function Layout() {
     const { theme, setTheme } = useTheme();
     const navigate = useNavigate();
@@ -19,6 +19,7 @@ export default function Layout() {
 
     return (
         <div className="">
+            <Toaster />
             <div className="transition-all fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-accent gap-5 border rounded-full p-4 pl-10 pr-10 flex items-center justify-center z-10">
                 <button
                     onClick={() => navigate("/")}
