@@ -1,14 +1,12 @@
-import { GithubDark } from "@/components/ui/svgs/githubDark";
+// import { GithubDark } from "@/components/ui/svgs/githubDark";
 import { account } from "@/components/appwrite";
-import { OAuthProvider } from "appwrite";
-import { GithubLight } from "@/components/ui/svgs/githubLight";
-import { useTheme } from "@/components/theme-provider";
+// import { OAuthProvider } from "appwrite";
+// import { GithubLight } from "@/components/ui/svgs/githubLight";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 export default function LoginPage() {
-    const { theme } = useTheme();
     // async function loginWGithub() {
     //     await account.createOAuth2Session({
     //         provider: OAuthProvider.Github,
@@ -16,25 +14,37 @@ export default function LoginPage() {
     //         failure: "http://localhost:5173/login",
     //     });
     // }
-    
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
     async function registerWEmail() {
-        await account.create({
-            email: email,
-            password: password,
-            userId: "unique()",
-        });
-        toast.success("Registered successfully! You can log in now.")
+        try {
+            await account.create({
+                email: email,
+                password: password,
+                userId: "unique()",
+            });
+            toast.success("Registered successfully! You can log in now.");
+        } catch (e) {
+            toast.error("Registration failed. Maybe you already logged in?");
+            console.log(e);
+        }
     }
 
     async function loginWEmail() {
-        await account.createEmailPasswordSession({
+        try {
+await account.createEmailPasswordSession({
             email: email,
             password: password,
         });
-        toast.success("Logged in successfully!")
+        toast.success("Logged in successfully!");
+        }
+        catch (e) {
+            toast.error("Login failed. Check your credentials.");
+            console.log(e);
+        }
+        
     }
 
     async function logout() {
@@ -104,8 +114,14 @@ export default function LoginPage() {
                         />
                     </div>
                     <Button onClick={loginWEmail}>Login</Button>
-                    <Button onClick={registerWEmail} variant={"outline"}>Register</Button>
-                    <span>Note: To register: 1. Fill out form with email and password 2. Click register. Done. Then you can log in immediattely</span>
+                    <Button onClick={registerWEmail} variant={"outline"}>
+                        Register
+                    </Button>
+                    <span className="opacity-80 font-mono text-xs">
+                        Note: To register: 1. Fill out form with email and
+                        password 2. Click register. Done. Then you can log in
+                        immediattely
+                    </span>
                 </div>
             </div>
         </div>
