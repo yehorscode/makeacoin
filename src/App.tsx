@@ -4,7 +4,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Home from "@/pages/Home/Home";
 import Layout from "@/pages/Layout/Layout";
 import LoginPage from "@/pages/Login/LoginPage";
-
+import DrawPage from "./pages/Draw/Draw";
 
 function App() {
     return (
@@ -15,6 +15,7 @@ function App() {
                         <Route path="/" element={<Layout />}>
                             <Route index element={<Home />} />
                             <Route path="/login" element={<LoginPage />} />
+                            <Route path="/draw" element={<DrawPage />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>

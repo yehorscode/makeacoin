@@ -38,10 +38,11 @@ export default function Layout() {
                     style={{
                         transition: bounceStyle,
                     }}
+                    onClick={() => navigate("/draw")}
                 >
                     <BadgePlus
                         size={35}
-                        className={path === "/new" ? activeStyle : ""}
+                        className={path === "/draw" ? activeStyle : ""}
                     />
                 </button>
                 <button

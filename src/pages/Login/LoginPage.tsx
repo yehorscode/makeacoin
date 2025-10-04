@@ -1,5 +1,6 @@
 // import { GithubDark } from "@/components/ui/svgs/githubDark";
 import { account } from "@/components/appwrite";
+import { ID, type Models } from "appwrite";
 // import { OAuthProvider } from "appwrite";
 // import { GithubLight } from "@/components/ui/svgs/githubLight";
 import { useEffect, useState } from "react";
@@ -7,25 +8,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 export default function LoginPage() {
-    // async function loginWGithub() {
-    //     await account.createOAuth2Session({
-    //         provider: OAuthProvider.Github,
-    //         success: "http://localhost:5173/",
-    //         failure: "http://localhost:5173/login",
-    //     });
-    // }
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userData, setUserData] =
+        useState<Models.User<Models.Preferences> | null>(null);
 
     async function registerWEmail() {
         try {
             await account.create({
                 email: email,
                 password: password,
-                userId: "unique()",
+                userId: ID.unique(),
             });
-            toast.success("Registered successfully! You can log in now.");
+            toast.success(
+                "Registered successfully! Now click the login button."
+            );
         } catch (e) {
             toast.error("Registration failed. Maybe you already logged in?");
             console.log(e);
@@ -34,39 +32,83 @@ export default function LoginPage() {
 
     async function loginWEmail() {
         try {
-await account.createEmailPasswordSession({
-            email: email,
-            password: password,
-        });
-        toast.success("Logged in successfully!");
-        }
-        catch (e) {
+            await account.createEmailPasswordSession({
+                email: email,
+                password: password,
+            });
+            const user = await account.get();
+            setUserData(user);
+            setIsLoggedIn(true);
+            toast.success("Logged in successfully!");
+        } catch (e) {
             toast.error("Login failed. Check your credentials.");
             console.log(e);
         }
-        
     }
 
     async function logout() {
         await account.deleteSession({
             sessionId: "current",
         });
+        setUserData(null);
+        setIsLoggedIn(false);
     }
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
                 const user = await account.get();
-                console.log(user);
+                setUserData(user);
+                setIsLoggedIn(true);
             } catch (e) {
                 console.log("No user logged in");
             }
         };
         fetchUser();
     }, []);
-
+    function debugData() {
+        console.log(userData);
+        console.log("Isloggedin:", isLoggedIn);
+        console.log("Email:", email);
+        console.log("Password:", password);
+    }
     return (
         <div className="">
+            <div className="mt-2 flex bg-accent items-center justify-between gap-3 rounded-md border p-3 text-sm">
+                {isLoggedIn && userData ? (
+                    <div className="flex w-full items-center justify-between">
+                        <span>
+                            Logged in as <b>{userData.email}</b>
+                        </span>
+                        <Button size="sm" variant="outline" onClick={logout}>
+                            Logout
+                        </Button>
+                    </div>
+                ) : (
+                    <span>Not logged in</span>
+                )}
+            </div>
+            <div className="">
+                {isLoggedIn && userData ? (
+                    <div className="bg-accent mt-5 rounded-xl border py-10 flex flex-col justify-center items-center">
+                        <h1 className="text-xl font-mono">
+                            Hi {userData?.name ?? "guest"}!
+                        </h1>
+                        <div className="">
+                            <div className="">
+                                <span>Change username:</span>
+                                <Input placeholder="username"></Input>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="hidden">
+                        <div className="">
+                            <h1>Log in to see your profile and customize it</h1>
+                        </div>
+                    </div>
+                )}
+            </div>
             {/* <div className="bg-accent rounded-xl border py-10 flex flex-col justify-center items-center">
                 <h1 className="font-mono text-2xl">Let's Login (alright?)</h1>
                 <span className="text-sm opacity-70">
@@ -109,12 +151,19 @@ await account.createEmailPasswordSession({
                         <span>Password</span>
                         <Input
                             placeholder="Password"
+                            type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
-                    <Button onClick={loginWEmail}>Login</Button>
-                    <Button onClick={registerWEmail} variant={"outline"}>
+                    <Button onClick={loginWEmail} disabled={isLoggedIn}>
+                        Login
+                    </Button>
+                    <Button
+                        onClick={registerWEmail}
+                        variant={"outline"}
+                        disabled={isLoggedIn}
+                    >
                         Register
                     </Button>
                     <span className="opacity-80 font-mono text-xs">
@@ -124,6 +173,7 @@ await account.createEmailPasswordSession({
                     </span>
                 </div>
             </div>
+            <button onClick={debugData}>debug</button>
         </div>
     );
 }
