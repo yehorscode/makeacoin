@@ -595,12 +595,12 @@ export default function DrawPage() {
       </button> */}
       <button
         onClick={openUploadingDialog}
-        className="px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-transparent cursor-pointer"
+        className="px-2.5 py-1 text-lg rounded-md border border-gray-300 bg-transparent cursor-pointer"
       >
         Upload
       </button>
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogTrigger>Open</DialogTrigger>
+        {/* <DialogTrigger>Open</DialogTrigger> */}
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Are you absolutely sure?</DialogTitle>
