@@ -1,4 +1,4 @@
-import { BadgePlus, Sun, Moon, User, Compass } from "lucide-react";
+import { BadgePlus, Sun, Moon, User, Compass, Github, Castle } from "lucide-react";
 import { useNavigate, Outlet, useLocation } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner"
@@ -53,6 +53,36 @@ export default function Layout() {
                     }}
                 >
                     {theme === "light" ? <Moon size={35} /> : <Sun size={35} />}
+                </button>
+                <button
+                    className="hover:animate-spin active:scale-99 hover:scale-120 transition-all hover:cursor-pointer"
+                    style={{
+                        transition: bounceStyle,
+                    }}
+                    onClick={(event) => {
+                        event.preventDefault();
+                        window.open("https://github.com/yehorscode/makeacoin", "_blank");
+                    }}
+                >
+                    <Github
+                        size={35}
+                        className={path === "/waewea" ? activeStyle : ""}
+                    />
+                </button>
+                <button
+                    className="hover:animate-bounce active:scale-99 hover:scale-120 transition-all hover:cursor-pointer"
+                    style={{
+                        transition: bounceStyle,
+                    }}
+                    onClick={(event) => {
+                        event.preventDefault();
+                        window.open("https://siege.hackclub.com/armory/626", "_blank");
+                    }}
+                >
+                    <Castle
+                        size={35}
+                        className={path === "/waewea" ? activeStyle : ""}
+                    />
                 </button>
                 <button
                     onClick={() => navigate("/login")}

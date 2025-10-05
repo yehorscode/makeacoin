@@ -5,6 +5,10 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Image as KonvaImage } from "konva/lib/shapes/Image";
 import type { Vector2d } from "konva/lib/types";
 import { floodFill } from "./FloodFill";
+import { storage, coin_bucket } from "@/components/appwrite";
+import { getUserID } from "@/components/appwrite";
+import { ID, Permission, Role } from "appwrite";
+
 // DISCLOSURE:
 // AI was used while making the drawing page. The base code was made with a mix of the demo (https://konvajs.org/docs/sandbox/Free_Drawing.html) and my personal experimenting and ai!!!!
 // also uhhh
@@ -12,6 +16,7 @@ import { floodFill } from "./FloodFill";
 // why dont they add emojis to comments when using this type of things (:sob: for example)
 // that is actuaally a great idea that i can make into an extension
 // alright i will start kinda commenting parts that i dont fully understand??
+
 type Tool = "brush" | "eraser" | "fill";
 type CoinFace = "front" | "back";
 // default configs
@@ -28,6 +33,14 @@ const configureContext = (
     context.lineCap = "round";
     context.lineWidth = size;
 };
+// sets the golden background
+const setBackground = (
+    context: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement
+) => {
+    context.fillStyle = "#FFD700";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+};
 // the sides of the coin
 const FACE_LABELS: Record<CoinFace, string> = {
     front: "Front",
@@ -41,10 +54,12 @@ export default function DrawPage() {
     const [color, setColor] = useState("#FFD700");
     const [size, setSize] = useState(5);
     const [currentFace, setCurrentFace] = useState<CoinFace>("front");
-    const [undoStacks, setUndoStacks] = useState<Record<CoinFace, ImageData[]>>({
-        front: [],
-        back: [],
-    });
+    const [undoStacks, setUndoStacks] = useState<Record<CoinFace, ImageData[]>>(
+        {
+            front: [],
+            back: [],
+        }
+    );
 
     //states for different positions?
     // shows on which side user is drawing
@@ -120,6 +135,7 @@ export default function DrawPage() {
             canvas.width = 300;
             canvas.height = 300;
             configureContext(context, color, size);
+            setBackground(context, canvas);
 
             canvasesRef.current[face] = canvas;
             contextsRef.current[face] = context;
@@ -169,6 +185,7 @@ export default function DrawPage() {
             canvas.width = 300;
             canvas.height = 300;
             configureContext(context, color, size);
+            setBackground(context, canvas);
             imageRefs.current[face]?.getLayer()?.batchDraw();
         });
     }, [faceDimensions.height, faceDimensions.width, faceSizes]);
@@ -219,7 +236,7 @@ export default function DrawPage() {
     // undoing of things (saves the state of canvas)
     React.useEffect(() => {
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.ctrlKey && event.key === 'z') {
+            if (event.ctrlKey && event.key === "z") {
                 event.preventDefault();
                 const face = currentFace;
                 const stack = undoStacks[face];
@@ -231,13 +248,13 @@ export default function DrawPage() {
                         context.putImageData(lastState, 0, 0);
                         imageRefs.current[face]?.getLayer()?.batchDraw();
                     }
-                    setUndoStacks(prev => ({ ...prev, [face]: stack }));
+                    setUndoStacks((prev) => ({ ...prev, [face]: stack }));
                 }
             }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [currentFace, undoStacks]);
 
     // drawing
@@ -247,8 +264,13 @@ export default function DrawPage() {
             const context = contextsRef.current[face];
             const canvas = canvasesRef.current[face];
             if (context && canvas) {
-                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-                setUndoStacks(prev => {
+                const imageData = context.getImageData(
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+                setUndoStacks((prev) => {
                     const newStack = [...prev[face], imageData];
                     if (newStack.length > 10) newStack.shift();
                     return { ...prev, [face]: newStack };
@@ -365,20 +387,52 @@ export default function DrawPage() {
         }
 
         context.clearRect(0, 0, canvas.width, canvas.height);
+        setBackground(context, canvas);
         configureContext(context, color, size);
         imageRefs.current[face]?.getLayer()?.batchDraw();
+    }, []);
+    // exporting the canvas as image
+    const handleExportFace = React.useCallback(async (face: CoinFace) => {
+        const canvas = canvasesRef.current[face];
+        if (canvas) {
+            const userId = await getUserID();
+            if (!userId) {
+                console.error('User not logged in');
+                return;
+            }
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const file = new File([blob], `coin-${face}.png`, { type: 'image/png' });
+                    storage.createFile({
+                        bucketId: coin_bucket,
+                        fileId: ID.unique(),
+                        file: file,
+                        permissions: [Permission.read(Role.any()), Permission.write(Role.user(userId))],
+                    }).then((response) => {
+                        console.log('File uploaded:', response);
+                    }).catch((error) => {
+                        console.error('Upload failed:', error);
+                    });
+                }
+            });
+        }
     }, []);
     // everyone knows this lmao
     return (
         <div className="flex flex-col gap-[25px] p-[25px]">
-            <div className="flex gap-[25px] bg-accent p-3 rounded-full border font-mono">
+            <div className="flex gap-[25px] bg-accent p-3 rounded-full border font-mono justify-center">
                 <label className="flex items-center gap-2">
                     <span>Tool:</span>
-                    <select value={tool} onChange={handleToolChange}>
+                    <select
+                        value={tool}
+                        onChange={handleToolChange}
+                        className="bg-accent-foreground/20 p-1"
+                    >
                         <option value="brush">Brush</option>
                         <option value="eraser">Eraser</option>
                         <option value="fill">Fill</option>
                     </select>
+                
                 </label>
                 <label className="flex items-center gap-2">
                     <span>Color:</span>
@@ -393,7 +447,7 @@ export default function DrawPage() {
                     <input
                         type="range"
                         min="1"
-                        max="20"
+                        max="40"
                         value={size}
                         onChange={(e) => setSize(Number(e.target.value))}
                     />
@@ -408,8 +462,6 @@ export default function DrawPage() {
                         }}
                         className="flex min-w-[240px] gap-3 border-2 border-dashed rounded p-3"
                     >
-                        
-
                         <div className="w-[300px] h-[300px] rounded-full">
                             <Stage
                                 width={300}
@@ -457,11 +509,21 @@ export default function DrawPage() {
                             >
                                 Clear
                             </button>
+                            <button
+                                type="button"
+                                onClick={() => handleExportFace(face)}
+                                className=" px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-transparent cursor-pointer"
+                            >
+                                Export
+                            </button>
                         </div>
                     </div>
                 ))}
             </div>
-            <span className="font-mono opacity-70">Note: Please draw inside the circle. Why? End result will be cropped to the circle anything past the circle </span>
+            <span className="font-mono opacity-70">
+                Note: Please draw inside the circle. Why? End result will be
+                cropped to the circle anything past the circle{" "}
+            </span>
         </div>
     );
 }
