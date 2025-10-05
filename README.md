@@ -1,4 +1,9 @@
 # Makeacoin
 Guess what? You make... a coin
 
-Design your own coin and let the world see it! draw, drag and drop images, write out text etc. Whatever you want tbh
+Now i wanted to make more features such as stickers, text etc.But i ran out of time. Maybe ill continue this project someday...
+
+Links: DEMO https://makeacoin.vercel.app
+Project link: inside the castle icon in the demo nav bar (bottom)
+
+Made for siege 2025 hackclub

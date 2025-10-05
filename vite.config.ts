@@ -11,5 +11,14 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      '/v1': {
+        target: 'https://fra.cloud.appwrite.io',
+        changeOrigin: true,
+        secure: true,
+      }
+    }
+  },
   // assetsInclude: ['**/*.html'],
 })
