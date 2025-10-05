@@ -411,7 +411,7 @@ export default function DrawPage() {
                                         }
                                         x={0}
                                         y={0}
-                                        clipFunc={getClipFunc(face, 300, 300)}
+                                        clipFunc={getClipFunc(300, 300)}
                                     />
                                 </Layer>
                             </Stage>
