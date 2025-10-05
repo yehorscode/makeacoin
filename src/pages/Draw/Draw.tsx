@@ -40,6 +40,11 @@ export default function DrawPage() {
     const [tool, setTool] = React.useState<Tool>("brush");
     const [color, setColor] = useState("#FFD700");
     const [size, setSize] = useState(5);
+    const [currentFace, setCurrentFace] = useState<CoinFace>("front");
+    const [undoStacks, setUndoStacks] = useState<Record<CoinFace, ImageData[]>>({
+        front: [],
+        back: [],
+    });
 
     //states for different positions?
     // shows on which side user is drawing
@@ -211,9 +216,45 @@ export default function DrawPage() {
         });
     }, [faceDimensions.height, stageSize.height, stageSize.width]);
 
+    // undoing of things (saves the state of canvas)
+    React.useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.ctrlKey && event.key === 'z') {
+                event.preventDefault();
+                const face = currentFace;
+                const stack = undoStacks[face];
+                if (stack.length > 0) {
+                    const lastState = stack.pop();
+                    const context = contextsRef.current[face];
+                    const canvas = canvasesRef.current[face];
+                    if (context && canvas && lastState) {
+                        context.putImageData(lastState, 0, 0);
+                        imageRefs.current[face]?.getLayer()?.batchDraw();
+                    }
+                    setUndoStacks(prev => ({ ...prev, [face]: stack }));
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [currentFace, undoStacks]);
+
     // drawing
     const handlePointerDown = React.useCallback(
         (face: CoinFace, event: KonvaEventObject<MouseEvent | TouchEvent>) => {
+            setCurrentFace(face);
+            const context = contextsRef.current[face];
+            const canvas = canvasesRef.current[face];
+            if (context && canvas) {
+                const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                setUndoStacks(prev => {
+                    const newStack = [...prev[face], imageData];
+                    if (newStack.length > 10) newStack.shift();
+                    return { ...prev, [face]: newStack };
+                });
+            }
+
             const stage = event.target.getStage();
             const pointerPosition = stage?.getPointerPosition();
 
@@ -330,7 +371,7 @@ export default function DrawPage() {
     // everyone knows this lmao
     return (
         <div className="flex flex-col gap-[25px] p-[25px]">
-            <div className="flex gap-[25px]">
+            <div className="flex gap-[25px] bg-accent p-3 rounded-full border font-mono">
                 <label className="flex items-center gap-2">
                     <span>Tool:</span>
                     <select value={tool} onChange={handleToolChange}>
@@ -358,25 +399,16 @@ export default function DrawPage() {
                     />
                 </label>
             </div>
-            <div className="flex flex-wrap gap-[25px]">
+            <div className="flex flex-wrap gap-5">
                 {COIN_FACES.map((face) => (
                     <div
                         key={face}
                         ref={(node) => {
                             containerRefs.current[face] = node;
                         }}
-                        className="flex-1 min-w-[240px] flex flex-col gap-3 border"
+                        className="flex min-w-[240px] gap-3 border-2 border-dashed rounded p-3"
                     >
-                        <div className="font-mono text-xl flex gap-3 items-center justify-center align-middle tracking-wider">
-                            {FACE_LABELS[face]}
-                            <button
-                                type="button"
-                                onClick={() => handleClearFace(face)}
-                                className="self-start px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-transparent cursor-pointer"
-                            >
-                                Clear
-                            </button>
-                        </div>
+                        
 
                         <div className="w-[300px] h-[300px] rounded-full">
                             <Stage
@@ -398,7 +430,7 @@ export default function DrawPage() {
                                 }
                                 onTouchEnd={() => handlePointerUp(face)}
                                 onTouchCancel={() => handlePointerUp(face)}
-                                className="border-2 border-white  rounded-full"
+                                className="border-2 border-accent-foreground overflow-hidden rounded-full"
                             >
                                 <Layer>
                                     <Image
@@ -416,9 +448,20 @@ export default function DrawPage() {
                                 </Layer>
                             </Stage>
                         </div>
+                        <div className="font-mono text-xl flex gap-3 items-end tracking-wider">
+                            {FACE_LABELS[face]}
+                            <button
+                                type="button"
+                                onClick={() => handleClearFace(face)}
+                                className=" px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-transparent cursor-pointer"
+                            >
+                                Clear
+                            </button>
+                        </div>
                     </div>
                 ))}
             </div>
+            <span className="font-mono opacity-70">Note: Please draw inside the circle. Why? End result will be cropped to the circle anything past the circle </span>
         </div>
     );
 }
