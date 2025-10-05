@@ -602,10 +602,9 @@ export default function DrawPage() {
         {/* <DialogTrigger>Open</DialogTrigger> */}
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogTitle>Lets upload coins!</DialogTitle>
             <DialogDescription>
-              This action cannot be undone. This will permanently delete your
-              account and remove your data from our servers.
+              This action cannot be undone. This will permanently show your awesome (or not) creation on the site. be careful!
             </DialogDescription>
           </DialogHeader>
           <Input
