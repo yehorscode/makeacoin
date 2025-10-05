@@ -17,7 +17,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -625,7 +624,7 @@ export default function DrawPage() {
           />
           {username && (
             <span className="font-mono text-xs opacity-70 underline">
-              Default account: {username}. <a href="/login">click here to change</a>
+              Default account: {username}
             </span>
           )}
           <Button onClick={uploadCoin} disabled={isUploading}>
