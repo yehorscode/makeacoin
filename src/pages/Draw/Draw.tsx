@@ -13,30 +13,30 @@ import { floodFill } from "./FloodFill";
 // that is actuaally a great idea that i can make into an extension
 // alright i will start kinda commenting parts that i dont fully understand??
 type Tool = "brush" | "eraser" | "fill";
-type CoinFace = "front" | "back" | "ridge";
+type CoinFace = "front" | "back";
 // default configs
 const DEFAULT_STAGE_PADDING = 25;
-const DEFAULT_LINE_WIDTH = 5;
-const COIN_FACES: CoinFace[] = ["front", "back", "ridge"];
+const COIN_FACES: CoinFace[] = ["front", "back"];
 // most straightforward part of the code basicly just sets the line sizes
-const configureContext = (context: CanvasRenderingContext2D, color: string, size: number) => {
+const configureContext = (
+    context: CanvasRenderingContext2D,
+    color: string,
+    size: number
+) => {
     context.strokeStyle = color;
     context.lineJoin = "round";
     context.lineCap = "round";
     context.lineWidth = size;
 };
-
-const MIN_FACE_WIDTH = 240;
 // the sides of the coin
 const FACE_LABELS: Record<CoinFace, string> = {
     front: "Front",
     back: "Back",
-    ridge: "Ridge",
 };
 
 // main func
 export default function DrawPage() {
-    // definitions of variables 
+    // definitions of variables
     const [tool, setTool] = React.useState<Tool>("brush");
     const [color, setColor] = useState("#FFD700");
     const [size, setSize] = useState(5);
@@ -46,62 +46,54 @@ export default function DrawPage() {
     const isDrawingRefs = React.useRef<Record<CoinFace, boolean>>({
         front: false,
         back: false,
-        ridge: false,
     });
     // last pos wher cusror was
     const lastPositions = React.useRef<Record<CoinFace, Vector2d | null>>({
         front: null,
         back: null,
-        ridge: null,
     });
     // idfk what this is
     const [, forceRender] = React.useReducer((count: number) => count + 1, 0);
-    const canvasesRef = React.useRef<Record<CoinFace, HTMLCanvasElement | null>>({
+    const canvasesRef = React.useRef<
+        Record<CoinFace, HTMLCanvasElement | null>
+    >({
         front: null,
         back: null,
-        ridge: null,
     });
-    const contextsRef = React.useRef<Record<CoinFace, CanvasRenderingContext2D | null>>({
+    const contextsRef = React.useRef<
+        Record<CoinFace, CanvasRenderingContext2D | null>
+    >({
         front: null,
         back: null,
-        ridge: null,
     });
     const imageRefs = React.useRef<Record<CoinFace, KonvaImage | null>>({
         front: null,
         back: null,
-        ridge: null,
     });
-    const containerRefs = React.useRef<Record<CoinFace, HTMLDivElement | null>>({
-        front: null,
-        back: null,
-        ridge: null,
-    });
+    const containerRefs = React.useRef<Record<CoinFace, HTMLDivElement | null>>(
+        {
+            front: null,
+            back: null,
+        }
+    );
     // how big the canvas is
     const [stageSize, setStageSize] = React.useState(() => ({
-        width: typeof window !== "undefined" ? window.innerWidth : 0,
-        height:
-            typeof window !== "undefined"
-                ? Math.max(window.innerHeight - DEFAULT_STAGE_PADDING, 0)
-                : 0,
+        width: 300,
+        height: 300,
     }));
     const [faceSizes, setFaceSizes] = React.useState<
         Record<CoinFace, { width: number; height: number }>
     >({
         front: { width: 0, height: 0 },
         back: { width: 0, height: 0 },
-        ridge: { width: 0, height: 0 },
     });
 
     const faceDimensions = React.useMemo(() => {
-        const width = COIN_FACES.length
-            ? Math.max(stageSize.width / COIN_FACES.length - DEFAULT_STAGE_PADDING, 0)
-            : stageSize.width;
-
         return {
-            width,
-            height: stageSize.height,
+            width: 300,
+            height: 300,
         };
-    }, [stageSize.height, stageSize.width]);
+    }, []);
 
     // makes the canavs
     React.useEffect(() => {
@@ -114,12 +106,14 @@ export default function DrawPage() {
             const context = canvas.getContext("2d");
 
             if (!context) {
-                console.error(`Failed to obtain 2D drawing context for ${face}.`);
+                console.error(
+                    `Failed to obtain 2D drawing context for ${face}.`
+                );
                 return;
             }
 
-            canvas.width = stageSize.width;
-            canvas.height = stageSize.height;
+            canvas.width = 300;
+            canvas.height = 300;
             configureContext(context, color, size);
 
             canvasesRef.current[face] = canvas;
@@ -167,13 +161,8 @@ export default function DrawPage() {
                 return;
             }
 
-            const targetWidth = Math.max(
-                faceSizes[face]?.width ?? faceDimensions.width,
-                MIN_FACE_WIDTH
-            );
-
-            canvas.width = targetWidth;
-            canvas.height = faceDimensions.height;
+            canvas.width = 300;
+            canvas.height = 300;
             configureContext(context, color, size);
             imageRefs.current[face]?.getLayer()?.batchDraw();
         });
@@ -222,7 +211,6 @@ export default function DrawPage() {
         });
     }, [faceDimensions.height, stageSize.height, stageSize.width]);
 
-
     // drawing
     const handlePointerDown = React.useCallback(
         (face: CoinFace, event: KonvaEventObject<MouseEvent | TouchEvent>) => {
@@ -238,7 +226,7 @@ export default function DrawPage() {
         },
         []
     );
-    // undrawing 
+    // undrawing
     const handlePointerUp = React.useCallback((face: CoinFace) => {
         isDrawingRefs.current[face] = false;
         lastPositions.current[face] = null;
@@ -266,14 +254,19 @@ export default function DrawPage() {
             }
 
             if (tool === "fill") {
-                if (!isDrawingRefs.current[face]) return; 
+                if (!isDrawingRefs.current[face]) return;
                 const localPos = {
                     x: pointerPosition.x - image.x(),
                     y: pointerPosition.y - image.y(),
                 };
-                floodFill(context, Math.floor(localPos.x), Math.floor(localPos.y), color);
+                floodFill(
+                    context,
+                    Math.floor(localPos.x),
+                    Math.floor(localPos.y),
+                    color
+                );
                 image.getLayer()?.batchDraw();
-                isDrawingRefs.current[face] = false; 
+                isDrawingRefs.current[face] = false;
                 return;
             }
 
@@ -300,6 +293,20 @@ export default function DrawPage() {
         },
         [tool, color]
     );
+
+    const getClipFunc = (face: CoinFace, width: number, height: number) => {
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const radius = Math.min(width, height) / 2 - 10;
+
+        return (ctx: CanvasRenderingContext2D) => {
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.closePath();
+            ctx.clip();
+        };
+    };
+
     // changing tools (brush fill etc)
     const handleToolChange = React.useCallback(
         (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -321,9 +328,9 @@ export default function DrawPage() {
         imageRefs.current[face]?.getLayer()?.batchDraw();
     }, []);
     // everyone knows this lmao
-    return ( 
+    return (
         <div className="flex flex-col gap-[25px] p-[25px]">
-                        <div className="flex gap-[25px]">
+            <div className="flex gap-[25px]">
                 <label className="flex items-center gap-2">
                     <span>Tool:</span>
                     <select value={tool} onChange={handleToolChange}>
@@ -334,11 +341,21 @@ export default function DrawPage() {
                 </label>
                 <label className="flex items-center gap-2">
                     <span>Color:</span>
-                    <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
+                    <input
+                        type="color"
+                        value={color}
+                        onChange={(e) => setColor(e.target.value)}
+                    />
                 </label>
                 <label className="flex items-center gap-2">
                     <span>Size:</span>
-                    <input type="range" min="1" max="20" value={size} onChange={(e) => setSize(Number(e.target.value))} />
+                    <input
+                        type="range"
+                        min="1"
+                        max="20"
+                        value={size}
+                        onChange={(e) => setSize(Number(e.target.value))}
+                    />
                 </label>
             </div>
             <div className="flex flex-wrap gap-[25px]">
@@ -348,44 +365,57 @@ export default function DrawPage() {
                         ref={(node) => {
                             containerRefs.current[face] = node;
                         }}
-                        className="flex-1 min-w-[240px] flex flex-col gap-3"
+                        className="flex-1 min-w-[240px] flex flex-col gap-3 border"
                     >
-                        <div className="font-semibold uppercase tracking-wider">
+                        <div className="font-mono text-xl flex gap-3 items-center justify-center align-middle tracking-wider">
                             {FACE_LABELS[face]}
+                            <button
+                                type="button"
+                                onClick={() => handleClearFace(face)}
+                                className="self-start px-2.5 py-1 text-xs rounded-md border border-gray-300 bg-transparent cursor-pointer"
+                            >
+                                Clear
+                            </button>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => handleClearFace(face)}
-                            className="self-start px-2.5 py-1 rounded-md border border-gray-300 bg-transparent cursor-pointer"
-                        >
-                            Clear
-                        </button>
-                        <Stage
-                            width={Math.max(
-                                faceSizes[face]?.width ?? faceDimensions.width,
-                                MIN_FACE_WIDTH
-                            )}
-                            height={faceDimensions.height}
-                            onMouseDown={(event) => handlePointerDown(face, event)}
-                            onMouseMove={(event) => handlePointerMove(face, event)}
-                            onMouseUp={() => handlePointerUp(face)}
-                            onMouseLeave={() => handlePointerUp(face)}
-                            onTouchStart={(event) => handlePointerDown(face, event)}
-                            onTouchMove={(event) => handlePointerMove(face, event)}
-                            onTouchEnd={() => handlePointerUp(face)}
-                            onTouchCancel={() => handlePointerUp(face)}
-                        >
-                            <Layer>
-                                <Image
-                                    ref={(node) => {
-                                        imageRefs.current[face] = node;
-                                    }}
-                                    image={canvasesRef.current[face] ?? undefined}
-                                    x={0}
-                                    y={0}
-                                />
-                            </Layer>
-                        </Stage>
+
+                        <div className="w-[300px] h-[300px] rounded-full">
+                            <Stage
+                                width={300}
+                                height={300}
+                                onMouseDown={(event) =>
+                                    handlePointerDown(face, event)
+                                }
+                                onMouseMove={(event) =>
+                                    handlePointerMove(face, event)
+                                }
+                                onMouseUp={() => handlePointerUp(face)}
+                                onMouseLeave={() => handlePointerUp(face)}
+                                onTouchStart={(event) =>
+                                    handlePointerDown(face, event)
+                                }
+                                onTouchMove={(event) =>
+                                    handlePointerMove(face, event)
+                                }
+                                onTouchEnd={() => handlePointerUp(face)}
+                                onTouchCancel={() => handlePointerUp(face)}
+                                className="border-2 border-white  rounded-full"
+                            >
+                                <Layer>
+                                    <Image
+                                        ref={(node) => {
+                                            imageRefs.current[face] = node;
+                                        }}
+                                        image={
+                                            canvasesRef.current[face] ??
+                                            undefined
+                                        }
+                                        x={0}
+                                        y={0}
+                                        clipFunc={getClipFunc(face, 300, 300)}
+                                    />
+                                </Layer>
+                            </Stage>
+                        </div>
                     </div>
                 ))}
             </div>
