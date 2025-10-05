@@ -1,7 +1,7 @@
 import { Client, Account, Storage, TablesDB } from "appwrite";
 
 const client = new Client()
-  .setEndpoint(import.meta.env.DEV ? '/v1' : import.meta.env.VITE_APPWRITE_ENDPOINT)
+  .setEndpoint(import.meta.env.VITE_APPWRITE_ENDPOINT)
   .setProject(import.meta.env.VITE_APPWRITE_PROJECT_ID);
 
 export const coin_bucket = "coins";
