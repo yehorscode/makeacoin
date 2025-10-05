@@ -1,8 +1,3 @@
-import { Stage, Layer, Image } from "react-konva";
-import type { KonvaEventObject } from "konva/lib/Node";
-import type { Image as KonvaImage } from "konva/lib/shapes/Image";
-import type { Vector2d } from "konva/lib/types";
-
 export function floodFill(
     context: CanvasRenderingContext2D,
     x: number,

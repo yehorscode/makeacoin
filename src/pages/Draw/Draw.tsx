@@ -294,7 +294,7 @@ export default function DrawPage() {
         [tool, color]
     );
 
-    const getClipFunc = (face: CoinFace, width: number, height: number) => {
+    const getClipFunc = (width: number, height: number) => {
         const centerX = width / 2;
         const centerY = height / 2;
         const radius = Math.min(width, height) / 2 - 10;
